@@ -1,4 +1,4 @@
-import socket
+import socket, errno
 import json
 import hashlib
 import copy
@@ -14,7 +14,7 @@ class Node:
         self.config = copy.deepcopy(config)
         self.config["txpool"] = {}
         self.config["UTXO"] = {}
-        self.config["peerpool"] = {}
+        self.config["peerpool"] = set()
         self.config["blockpool"] = {}
         self.config["orphantxpool"] = {}
         self.config["orphanblockpool"] = {}
@@ -64,18 +64,26 @@ class Node:
         #if orphan_bks[hash] == None: orphan_bks[hash] = bk
         #else:
         if bks.get(hash) == None: bks[hash] = bk
-    
+            
     def receive_thread(self):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.bind(('127.0.0.2', 8085))
-        sock.settimeout(None)
+        for i in range(8000, 9000):
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            try: sock.bind(("127.0.0.1", i))
+            except socket.error as e: continue
+            address, port = sock.getsockname()
+            if port >= 8000 and port <= 9000: break
+            print("Recieving at %s:%d" %(address, port))
         
+        sock.settimeout(0.0)
+        data = json.dumps((1, (address, port))).encode()
+        for i in range(8000, 9000):
+            if i != port: sock.sendto(data, ('127.0.0.1', i))
+        
+        sock.settimeout(None)    
         while True:
-            print("Recieving at '127.0.0.1/8085")
-            data, address = sock.recvfrom(MAX_BYTES)
-            if address not in self.config["peerpool"].values(): continue
+            print("Recieving at %s:%d" %(address, port))
+            data, recv_address = sock.recvfrom(MAX_BYTES)
             text = json.loads(data.decode('ascii'))
-            print('The client at {} says {!r}' .format(address, text))
-            if text[0] == 1:
-                self.add_blocks(text[1])
+            if len(data) != 0 and recv_address not in self.config["peerpool"] and text[0] == 1: self.config["peerpool"].add((text[1][0], text[1][1])); sock.sendto(json.dumps((1, (address, port))).encode(), recv_address)
+            print('The client at {} says {!r}' .format(recv_address, text))
             self.print_attr()
