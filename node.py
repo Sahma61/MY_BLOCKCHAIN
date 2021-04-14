@@ -10,11 +10,11 @@ MAX_BYTES = 65535
 class Node:
     
     def __init__(self):
-        with open('config.json', 'r') as infile: config = json.load(infile)
-        self.config = copy.deepcopy(config)
+        
+        self.config = {}
         self.config["txpool"] = {}
         self.config["UTXO"] = {}
-        self.config["peerpool"] = set()
+        self.config["peerpool"] = []
         self.config["blockpool"] = {}
         self.config["orphantxpool"] = {}
         self.config["orphanblockpool"] = {}
@@ -34,6 +34,21 @@ class Node:
         cipher = AES.new(key, AES.MODE_EAX, nonce)
         data = cipher.decrypt_and_verify(ciphertext, tag)
         self.keys = json.loads(data.decode())
+        self.config["pubkey"] = self.keys["public_key"]
+        self.config["bitcoin_address"] = self.keys["bitcoin_address"]
+        
+        try:
+            file_in = open("config.json", "rb")
+        except FileNotFoundError:
+            file_out = open("config.json", "wb")
+            file_out.write(json.dumps(self.config, sort_keys = True).encode())
+            file_out.close()
+            
+        with open('config.json', 'r') as infile: config = json.load(infile)
+        self.config = copy.deepcopy(config)
+        
+        with open('UTXO.json', 'r') as infile: UTXO = json.load(infile)
+        self.config["UTXO"] = copy.deepcopy(UTXO)
         
     def print_attr(self):
         print(self.config)
@@ -84,6 +99,6 @@ class Node:
             print("Recieving at %s:%d" %(address, port))
             data, recv_address = sock.recvfrom(MAX_BYTES)
             text = json.loads(data.decode('ascii'))
-            if len(data) != 0 and recv_address not in self.config["peerpool"] and text[0] == 1: self.config["peerpool"].add((text[1][0], text[1][1])); sock.sendto(json.dumps((1, (address, port))).encode(), recv_address)
+            if len(data) != 0 and recv_address not in self.config["peerpool"] and text[0] == 1: self.config["peerpool"].append((text[1][0], text[1][1])); sock.sendto(json.dumps((1, (address, port))).encode(), recv_address); file_out = open("peerpool.json", "wb"); file_out.write(json.dumps(self.config["peerpool"]).encode()); file_out.close()
             print('The client at {} says {!r}' .format(recv_address, text))
             self.print_attr()

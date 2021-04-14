@@ -1,1 +1,1 @@
-{"address": "1AyBHe5Aho6eDFLp985CBvC83jTfRabnZ7", "numblocks": 0, "peer_count": 5, "wallet_balance": 10}
+{"UTXO": {}, "bitcoin_address": "1BEeij3B76juCXiC67CugKTHkwTiAQ5vnF", "blockpool": {}, "orphanblockpool": {}, "orphantxpool": {}, "peerpool": [], "pubkey": [112477148199076040362230739266271233520457550447854112676380178450724070956049, 66933958614594671581076961453437850910990658921011840881739231598377009631488], "txpool": {}}
