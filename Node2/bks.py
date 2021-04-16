@@ -1,5 +1,6 @@
 import hashlib, json
-import sys
+import sys, os
+from utils import *
 class block:
     def __init__(self):
         self.block = {}
@@ -15,7 +16,7 @@ class block:
 
     def insert_tx(self, listoftxs):
         for txs in listoftxs:
-            self.block["txs"].append(hashlib.sha256(json.dumps(txs, sort_keys=True).encode()).hexdigest())
+            self.block["txs"].append(txs)
         return
 
     def mine_block(self):
@@ -31,8 +32,35 @@ class block:
 
     def verify_block(): pass
 
-def verify_bk(bk):
-    return
+def verify_bk(block, txpool):
+    if not os.listdir('BKS'):
+        with open('config.json', 'r') as infile: previousblock = json.load(infile)
+    else:
+        with open(f'BKS/{os.listdir[-1]}', 'r') as infile: previousblock = json.load(infile)
+    
+    listoftransactions = []
+    listofids = []
+    for x in block["txs"]:
+        listoftransactions.append(txpool[x])
+    merkle_root = create_tree(listoftransactions)
+    
+    valid = True
+    valid &= block["size"] == 0
+    valid &= block["version"] == None
+    valid &= block["bits"] == "0x1e03a30c"
+    valid &= block["previousblockhash"] == hashlib.sha256(json.dumps(previousblock, sort_keys=True).encode()).hexdigest()
+    valid &= block["merkelroot"] == merkle_root
+    valid &= block["time"] == 0
+    valid &= block["difficulty"] == 0.0
+    
+    target = int(block["bits"][-6:], 16)*2**(8*(int(block["bits"][2:4], 16) - 3))
+    val = hashlib.sha256(json.dumps(block, sort_keys=True).encode()).hexdigest()
+    if target > int(val, 16): valid = True
+    else: valid = False
+    for x in block["txs"]:
+        if x not in txpool.keys(): valid = False; break
+            
+    return valid
 
 def add_new_bk(bk_pool, bk):
     verify_bk(bk)

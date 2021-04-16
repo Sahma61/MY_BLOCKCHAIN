@@ -23,8 +23,15 @@ class tx_out:
         self.out["value"] = ""
         self.out["scriptpubKey"] = ""
 
-def verify_tx(tx):
-    return
+def verify_tx(tx, UTXO):
+    valid = True
+    valid &= tx['version'] == 1
+    valid &= tx['locktime'] == 0
+    for x in tx['vin']:
+        if UTXO.get(x) == None:
+            valid = False
+            break;
+    return valid
 
 def add_new_tx(tx_pool, tx):
     verify_tx(tx)

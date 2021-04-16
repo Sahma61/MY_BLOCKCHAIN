@@ -2,9 +2,12 @@ import socket, errno
 import json
 import hashlib
 import copy
+import os
 import gen_keys
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
+from txs import *
+from bks import *
 MAX_BYTES = 65535
 
 class Node:
@@ -99,6 +102,17 @@ class Node:
             print("Recieving at %s:%d" %(address, port))
             data, recv_address = sock.recvfrom(MAX_BYTES)
             text = json.loads(data.decode('ascii'))
-            if len(data) != 0 and recv_address not in self.config["peerpool"] and text[0] == 1: self.config["peerpool"].append((text[1][0], text[1][1])); sock.sendto(json.dumps((1, (address, port))).encode(), recv_address); file_out = open("peerpool.json", "wb"); file_out.write(json.dumps(self.config["peerpool"]).encode()); file_out.close()
-            if text[0] == 2: self.config["txpool"][json.dumps(text[1], sort_keys=True)] = text[1]; file_out = open("txpool.json", "wb"); file_out.write(json.dumps(self.config["txpool"]).encode()); file_out.close()
+            if len(data) != 0 and recv_address not in self.config["peerpool"] and text[0] == 1:
+                self.config["peerpool"].append((text[1][0], text[1][1])); sock.sendto(json.dumps((1, (address, port))).encode(), recv_address); file_out = open("peerpool.json", "wb"); file_out.write(json.dumps(self.config["peerpool"]).encode()); file_out.close()
+            if text[0] == 2:
+                if verify_tx(text[1], self.config["UTXO"]):
+                    print("Transaction verified successfully")
+                    self.config["txpool"][hashlib.sha256(json.dumps(text[1], sort_keys=True).encode()).hexdigest()] = text[1]; file_out = open("txpool.json", "wb"); file_out.write(json.dumps(self.config["txpool"], sort_keys = True).encode()); file_out.close()
+            if text[0] == 3:
+                if verify_bk(text[1], self.config["txpool"]):
+                    print("Block verified successfully")
+                    self.config["blockpool"][json.dumps(text[1], sort_keys=True)] = text[1]
+                    val = len(os.listdir('BKS'))+1
+                    file_out = open(f'BKS/bk{val}.json', "wb"); file_out.write(json.dumps(text[1]).encode()); file_out.close()
+                    
             print('The client at {} says {!r}' .format(recv_address, text))
