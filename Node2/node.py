@@ -10,6 +10,22 @@ from txs import *
 from bks import *
 MAX_BYTES = 65535
 
+def add_UTXO(UTXO, txpool, listoftxids):
+    for x in listoftxids:
+        tx = txpool[x]
+        UTXO[x] = tx["vout"]
+    
+    for x in listoftxids:
+        tx = txpool[x]
+        vin = tx["vin"]
+        for y in vin:
+            if UTXO.get(y[0]) != None and UTXO.get(y[0]).get(y[1]) != None:
+                UTXO.get(y[0]).pop(y[1])
+                
+            if not list(UTXO[y[0]].keys()):
+                UTXO.pop(y[0])
+    return UTXO
+
 class Node:
     
     def __init__(self):
@@ -82,7 +98,7 @@ class Node:
         #if orphan_bks[hash] == None: orphan_bks[hash] = bk
         #else:
         if bks.get(hash) == None: bks[hash] = bk
-            
+           
     def receive_thread(self):
         for i in range(8000, 9000):
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -114,5 +130,7 @@ class Node:
                     self.config["blockpool"][json.dumps(text[1], sort_keys=True)] = text[1]
                     val = len(os.listdir('BKS'))+1
                     file_out = open(f'BKS/bk{val}.json', "wb"); file_out.write(json.dumps(text[1]).encode()); file_out.close()
+                    self.config["UTXO"] = add_UTXO(self.config["UTXO"], self.config["txpool"], text[1]["txs"])
+                    file_out = open('UTXO.json', "wb"); file_out.write(json.dumps(self.config["UTXO"]).encode()); file_out.close()
                     
             print('The client at {} says {!r}' .format(recv_address, text))

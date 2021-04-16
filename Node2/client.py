@@ -14,7 +14,7 @@ def Send(args):
     balance = 0
     for x in UTXO.keys():
         if UTXO[x].get(node.config["bitcoin_address"]) == None: continue
-        if UTXO[x][node.config["bitcoin_address"]] >= (args.value + args.fee): tx_in.append(x); balance = UTXO[x][node.config["bitcoin_address"]]; break
+        if UTXO[x][node.config["bitcoin_address"]] >= (args.value + args.fee): tx_in.append((x, node.config["bitcoin_address"])); balance = UTXO[x][node.config["bitcoin_address"]]; break
         else: tx_in.append(x); balance += UTXO[x][node.config["bitcoin_address"]]
         if balance >= (args.value + args.fee): break
     if balance >= (args.value + args.fee):
