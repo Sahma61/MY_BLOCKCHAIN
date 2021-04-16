@@ -14,7 +14,7 @@ def Send(args):
     balance = 0
     for x in UTXO.keys():
         if UTXO[x].get(node.config["bitcoin_address"]) == None: continue
-        if UTXO[x][node.config["bitcoin_address"]] >= (args.value + args.fee): tx_in.append(x); balance = UTXO[x][node.config["bitcoin_address"]]; break
+        if UTXO[x][node.config["bitcoin_address"]] >= (args.value + args.fee): tx_in.append((x, node.config["bitcoin_address"])); balance = UTXO[x][node.config["bitcoin_address"]]; break
         else: tx_in.append(x); balance += UTXO[x][node.config["bitcoin_address"]]
         if balance >= (args.value + args.fee): break
     if balance >= (args.value + args.fee):
@@ -42,7 +42,8 @@ def Mine(args):
     if not os.listdir('BKS'):
         with open('config.json', 'r') as infile: previousblock = json.load(infile)
     else:
-        with open(f'BKS/{os.listdir[-1]}', 'r') as infile: previousblock = json.load(infile)
+        value = list(os.listdir("BKS"))[-1]
+        with open(f'BKS/{value}', 'r') as infile: previousblock = json.load(infile)
     with open('txpool.json', 'r') as infile: txpool = json.load(infile)
     if len(txpool) <= 10:
         listoftransactions = []

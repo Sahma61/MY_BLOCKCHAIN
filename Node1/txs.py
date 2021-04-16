@@ -28,7 +28,10 @@ def verify_tx(tx, UTXO):
     valid &= tx['version'] == 1
     valid &= tx['locktime'] == 0
     for x in tx['vin']:
-        if UTXO.get(x) == None:
+        if UTXO.get(x[0]) == None:
+            valid = False
+            break;
+        if UTXO.get(x[0]).get(x[1]) == None:
             valid = False
             break;
     return valid

@@ -8,6 +8,7 @@ class merkle_node:
         self.hash = None
 
 def create_tree(listoftransactions):
+    if not listoftransactions: return merkle_node()
     tree_nodes = []
     if(len(listoftransactions) % 2 == 1): listoftransactions.append(listoftransactions[-1])
     for i in range(0, len(listoftransactions)):

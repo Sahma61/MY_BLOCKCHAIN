@@ -36,7 +36,8 @@ def verify_bk(block, txpool):
     if not os.listdir('BKS'):
         with open('config.json', 'r') as infile: previousblock = json.load(infile)
     else:
-        with open(f'BKS/{os.listdir[-1]}', 'r') as infile: previousblock = json.load(infile)
+        value = list(os.listdir('BKS'))[-1] 
+        with open(f'BKS/{value}', 'r') as infile: previousblock = json.load(infile)
     
     listoftransactions = []
     listofids = []

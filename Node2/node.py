@@ -24,7 +24,11 @@ def add_UTXO(UTXO, txpool, listoftxids):
                 
             if not list(UTXO[y[0]].keys()):
                 UTXO.pop(y[0])
-    return UTXO
+                
+    for x in listoftxids:
+        txpool.pop(x)
+                 
+    return UTXO, txpool
 
 class Node:
     
@@ -130,7 +134,10 @@ class Node:
                     self.config["blockpool"][json.dumps(text[1], sort_keys=True)] = text[1]
                     val = len(os.listdir('BKS'))+1
                     file_out = open(f'BKS/bk{val}.json', "wb"); file_out.write(json.dumps(text[1]).encode()); file_out.close()
-                    self.config["UTXO"] = add_UTXO(self.config["UTXO"], self.config["txpool"], text[1]["txs"])
+                    output = add_UTXO(self.config["UTXO"], self.config["txpool"], text[1]["txs"])
+                    self.config["UTXO"] = output[0]
+                    self.config["txpool"] = output[1]
                     file_out = open('UTXO.json', "wb"); file_out.write(json.dumps(self.config["UTXO"]).encode()); file_out.close()
+                    file_out = open('txpool.json', "wb"); file_out.write(json.dumps(self.config["txpool"]).encode()); file_out.close()
                     
             print('The client at {} says {!r}' .format(recv_address, text))
