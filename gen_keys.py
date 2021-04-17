@@ -1,7 +1,7 @@
 import bitcoin
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
-import json
+import json, getpass
 
 def get_keys():
     # Generate a random private key
@@ -54,8 +54,8 @@ def get_keys():
     keys["bitcoin_address_compressed"] = bitcoin.pubkey_to_address(hex_compressed_public_key)
     
     while(True):
-        password1 = input("Enter the password:")
-        password2 = input("Enter the password to confirm:")
+        password1 = getpass.getpass(prompt="Enter the Password")
+        password2 = getpass.getpass(prompt="Re-enter the password to confirm:")
         if password1 != password2:
             print("Passwords don't match")
             continue

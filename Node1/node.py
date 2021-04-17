@@ -1,7 +1,7 @@
 import socket, errno
 import json
 import hashlib
-import copy
+import copy, getpass
 import os
 import gen_keys
 from Crypto.Cipher import AES
@@ -50,7 +50,7 @@ class Node:
             gen_keys.get_keys()
             file_in = open("encrypted.bin", "rb")
             
-        password = input("Enter the password:")
+        password = getpass.getpass(prompt="Enter the password:")
         for i in range(16 - len(password) % 16): password = password + "0"
         key = password.encode()
         nonce, tag, ciphertext = [ file_in.read(x) for x in (16, 16, -1) ]

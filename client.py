@@ -8,6 +8,9 @@ from bks import block
 from utils import *
 import os
 
+def view(args):
+    node.print_attr()
+    
 def Send(args):
     UTXO = node.config["UTXO"]
     tx_in = []
@@ -87,9 +90,8 @@ parser_foo.set_defaults(func=Send)
 parser_bar = subparsers.add_parser('Receive')
 parser_bar.set_defaults(func=Receive)
 
-#parser_bar = subparsers.add_parser('Create')
-#parser_bar.add_argument('z')
-#parser_bar.set_defaults(func=bar)
+parser_bar = subparsers.add_parser('View')
+parser_bar.set_defaults(func=view)
 
 parser_bar = subparsers.add_parser('Mine')
 parser_bar.set_defaults(func=Mine)
