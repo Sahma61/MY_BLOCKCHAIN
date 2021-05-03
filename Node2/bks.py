@@ -1,9 +1,11 @@
 import hashlib, json
 import sys, os
 from utils import *
+import time
 class block:
     def __init__(self):
         self.block = {}
+        self.block["time"] = 0
         self.block["size"] = 0
         self.block["version"] = None
         self.block["bits"] = "0x1e03a30c"
@@ -24,6 +26,7 @@ class block:
         print(hex(target))
         for nonce in range(sys.maxsize):
             self.block["nonce"] = hex(nonce)
+            self.block["time"] = int(time.clock_gettime(time.CLOCK_REALTIME))
             val = hashlib.sha256(json.dumps(self.block, sort_keys=True).encode()).hexdigest()
             print(val)
             if target > int(val, 16):
