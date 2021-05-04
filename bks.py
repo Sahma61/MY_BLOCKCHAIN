@@ -1,7 +1,6 @@
 import hashlib, json
-import sys, os
+import sys, os, time
 from utils import *
-import time
 class block:
     def __init__(self):
         self.block = {}
@@ -13,6 +12,7 @@ class block:
         self.block["merkelroot"] = None
         self.block["time"] = 0
         self.block["difficulty"] = 0.0
+        self.block["difficulty_1"] = "0x00000000FFFF0000000000000000000000000000000000000000000000000000"
         self.block["nonce"] = None
         self.block["txs"] = []
 
@@ -20,9 +20,54 @@ class block:
         for txs in listoftxs:
             self.block["txs"].append(txs)
         return
-
+    
+    def adjust_dif(self):
+        
+        if not os.listdir('BKS'):
+            return
+        
+        Interval = 2016
+        TargetTimespan = 1209600
+        
+        if len(list(os.listdir("BKS"))) % 2016 == 0:
+            adjustment_needed = True
+            level = len(list(os.listdir("BKS"))) // 2016
+            
+            value1 = list(os.listdir("BKS"))[-1]
+            with open(f'BKS/{value1}', 'r') as infile: previousblock = json.load(infile)
+            
+            value2 = list(os.listdir("BKS"))[(level-1)*2016]
+            with open(f'BKS/{value2}', 'r') as infile: ppreviousblock = json.load(infile)
+    
+    
+            ActualTimespan = previousblock["time"] - ppreviousblock["time"]
+           
+            if ActualTimespan < TargetTimespan/4:
+                ActualTimespan = TargetTimespan/4
+        
+            if ActualTimespan > TargetTimespan*4:
+                ActualTimespan = TargetTimespan*4
+                
+            #Retarget
+            bnPowLimit = 2**256
+            bnNew = int(previousblock["bits"][-6:], 16)*2**(8*(int(previousblock["bits"][2:4], 16) - 3))
+            bnOld = bnNew
+            bnNew *= ActualTimespan
+            bnNew /= TargetTimespan
+            
+            if bnNew > bnPowLimit:
+                bnNew = bnPowLimit
+                
+            target = target_to_bits(target=bnNew)
+            self.block["bits"] = target[0]+ target[1][2:]
+            
+        return
+        
+        
     def mine_block(self):
+        self.adjust_dif()
         target = int(self.block["bits"][-6:], 16)*2**(8*(int(self.block["bits"][2:4], 16) - 3))
+        self.block["difficulty"] = int(self.block["difficulty_1"], 16) / target
         print(hex(target))
         for nonce in range(sys.maxsize):
             self.block["nonce"] = hex(nonce)
@@ -34,7 +79,7 @@ class block:
         return val
 
     def verify_block(): pass
-
+    
 def verify_bk(block, txpool):
     if not os.listdir('BKS'):
         with open('config.json', 'r') as infile: previousblock = json.load(infile)
@@ -69,3 +114,12 @@ def verify_bk(block, txpool):
 def add_new_bk(bk_pool, bk):
     verify_bk(bk)
     bk_pool[hashlib.sha256(json.dumps(bk, sort_keys=True).encode()).hexdigest()] = bk
+    
+def target_to_bits(target):
+    exponent = 0
+    coefficient = 0
+    for exp in range(0x04, 0xFF):
+        if target > 2**(8 * (exp - 3)) and target % 2**(8 * (exp - 3)) == 0:
+            exponent = exp
+            coefficient = target // 2**(8 * (exp - 3))
+    return hex(exponent), hex(coefficient)
