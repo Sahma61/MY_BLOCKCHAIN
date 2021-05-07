@@ -43,6 +43,7 @@ class Node:
         self.config["orphanblockpool"] = {}
         self.config["pubkey"] = ""
         self.config["bitcoin_address"] = ""
+        self.config["bits"] = "0x1e03a30c"
         
         try:
             file_in = open("encrypted.bin", "rb")

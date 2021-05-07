@@ -3,11 +3,11 @@ import sys, os, time
 from utils import *
 class block:
     def __init__(self):
+      
         self.block = {}
         self.block["time"] = 0
         self.block["size"] = 0
         self.block["version"] = None
-        self.block["bits"] = "0x1e03a30c"
         self.block["previousblockhash"] = None
         self.block["merkelroot"] = None
         self.block["time"] = 0
@@ -15,6 +15,14 @@ class block:
         self.block["difficulty_1"] = "0x00000000FFFF0000000000000000000000000000000000000000000000000000"
         self.block["nonce"] = None
         self.block["txs"] = []
+        
+        try:
+            file_in = open("config.json", "rb")
+            config = json.load(file_in)
+            self.block["bits"] = config["bits"]
+            
+        except FileNotFoundError:
+            self.block["bits"] = "0x1e03a30c"
 
     def insert_tx(self, listoftxs):
         for txs in listoftxs:
@@ -26,17 +34,17 @@ class block:
         if not os.listdir('BKS'):
             return
         
-        Interval = 2016
-        TargetTimespan = 1209600
+        Interval = 4
+        TargetTimespan = 2400
         
-        if len(list(os.listdir("BKS"))) % 2016 == 0:
+        if len(list(os.listdir("BKS"))) % Interval == 0:
             adjustment_needed = True
-            level = len(list(os.listdir("BKS"))) // 2016
+            level = len(list(os.listdir("BKS"))) // Interval
             
-            value1 = list(os.listdir("BKS"))[-1]
+            value1 = sorted(list(os.listdir("BKS")))[-1]
             with open(f'BKS/{value1}', 'r') as infile: previousblock = json.load(infile)
             
-            value2 = list(os.listdir("BKS"))[(level-1)*2016]
+            value2 = sorted(list(os.listdir("BKS")))[(level-1)*Interval]
             with open(f'BKS/{value2}', 'r') as infile: ppreviousblock = json.load(infile)
     
     
@@ -49,8 +57,8 @@ class block:
                 ActualTimespan = TargetTimespan*4
                 
             #Retarget
-            bnPowLimit = 2**256
-            bnNew = int(previousblock["bits"][-6:], 16)*2**(8*(int(previousblock["bits"][2:4], 16) - 3))
+            bnPowLimit = 2**256 - 1
+            bnNew = int(previousblock["bits"][4:], 16)*2**(8*(int(previousblock["bits"][2:4], 16) - 3))
             bnOld = bnNew
             bnNew *= ActualTimespan
             bnNew /= TargetTimespan
@@ -58,15 +66,30 @@ class block:
             if bnNew > bnPowLimit:
                 bnNew = bnPowLimit
                 
+            print("Ratio: ", bnNew/bnOld)
+            time.sleep(10.0)
+                
             target = target_to_bits(target=bnNew)
-            self.block["bits"] = target[0]+ target[1][2:]
+            
+            target0 = target[0]
+            target1 = target[1]
+            
+            if len(target0) != 4: target0 = "0x0" + target0[-1]
+            
+            self.block["bits"] = target0 + target1[2:]
+            
+            with open('config.json', 'r') as infile: config = json.load(infile)
+            config["bits"] = self.block["bits"]
+            file_out = open("config.json", "wb")
+            file_out.write(json.dumps(config, sort_keys = True).encode())
+            file_out.close()
             
         return
         
         
     def mine_block(self):
         self.adjust_dif()
-        target = int(self.block["bits"][-6:], 16)*2**(8*(int(self.block["bits"][2:4], 16) - 3))
+        target = int(self.block["bits"][4:], 16)*2**(8*(int(self.block["bits"][2:4], 16) - 3))
         self.block["difficulty"] = int(self.block["difficulty_1"], 16) / target
         print(hex(target))
         for nonce in range(sys.maxsize):
@@ -89,6 +112,7 @@ def verify_bk(block, txpool):
     
     listoftransactions = []
     listofids = []
+    
     for x in block["txs"]:
         listoftransactions.append(txpool[x])
     merkle_root = create_tree(listoftransactions)
@@ -96,13 +120,13 @@ def verify_bk(block, txpool):
     valid = True
     valid &= block["size"] == 0
     valid &= block["version"] == None
-    valid &= block["bits"] == "0x1e03a30c"
+    #valid &= block["bits"] == "0x1e03a30c"
     valid &= block["previousblockhash"] == hashlib.sha256(json.dumps(previousblock, sort_keys=True).encode()).hexdigest()
     valid &= block["merkelroot"] == merkle_root
-    valid &= block["time"] == 0
-    valid &= block["difficulty"] == 0.0
+    #valid &= block["time"] == 0
+    #valid &= block["difficulty"] == 0.0
     
-    target = int(block["bits"][-6:], 16)*2**(8*(int(block["bits"][2:4], 16) - 3))
+    target = int(block["bits"][4:], 16)*2**(8*(int(block["bits"][2:4], 16) - 3))
     val = hashlib.sha256(json.dumps(block, sort_keys=True).encode()).hexdigest()
     if target > int(val, 16): valid = True
     else: valid = False
@@ -122,4 +146,4 @@ def target_to_bits(target):
         if target > 2**(8 * (exp - 3)) and target % 2**(8 * (exp - 3)) == 0:
             exponent = exp
             coefficient = target // 2**(8 * (exp - 3))
-    return hex(exponent), hex(coefficient)
+    return hex(exponent), hex(int(coefficient))

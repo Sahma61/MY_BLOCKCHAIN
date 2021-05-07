@@ -18,7 +18,7 @@ def Send(args):
     for x in UTXO.keys():
         if UTXO[x].get(node.config["bitcoin_address"]) == None: continue
         if UTXO[x][node.config["bitcoin_address"]] >= (args.value + args.fee): tx_in.append((x, node.config["bitcoin_address"])); balance = UTXO[x][node.config["bitcoin_address"]]; break
-        else: tx_in.append(x); balance += UTXO[x][node.config["bitcoin_address"]]
+        else: tx_in.append((x, node.config["bitcoin_address"])); balance += UTXO[x][node.config["bitcoin_address"]]
         if balance >= (args.value + args.fee): break
     if balance >= (args.value + args.fee):
         tx = transaction(tx_in, {args.address: args.value, node.config["bitcoin_address"]: balance - args.value - args.fee})
@@ -51,6 +51,7 @@ def Mine(args):
     if len(txpool) <= 10:
         listoftransactions = []
         listofids = []
+        
         for x in txpool.keys():
             listoftransactions.append(txpool[x])
             listofids.append(x)
