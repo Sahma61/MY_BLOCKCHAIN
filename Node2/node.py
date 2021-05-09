@@ -62,18 +62,26 @@ class Node:
         self.config["bitcoin_address"] = self.keys["bitcoin_address"]
         
         try:
-            file_in = open("config.json", "rb")
+            with open('config.json', 'r') as infile: config = json.load(infile)
+            self.config = copy.deepcopy(config)
         except FileNotFoundError:
-            file_out = open("config.json", "wb")
-            file_out.write(json.dumps(self.config, sort_keys = True).encode())
-            file_out.close()
+            file_out = open("config.json", "wb"); file_out.write(json.dumps(self.config, sort_keys = True).encode()); file_out.close()
             
-        with open('config.json', 'r') as infile: config = json.load(infile)
-        self.config = copy.deepcopy(config)
-        
         with open('UTXO.json', 'r') as infile: UTXO = json.load(infile)
         self.config["UTXO"] = copy.deepcopy(UTXO)
         
+        try:
+            with open('txpool.json', 'r') as infile: txpool = json.load(infile)
+            self.config["txpool"] = copy.deepcopy(txpool)
+        except FileNotFoundError:
+            file_out = open("txpool.json", "wb"); file_out.write(json.dumps(self.config["txpool"], sort_keys = True).encode()); file_out.close()
+            
+        try:    
+            with open('bkpool.json', 'r') as infile: bkpool = json.load(infile)
+            self.config["blockpool"] = copy.deepcopy(bkpool)
+        except FileNotFoundError:
+            file_out = open("bkpool.json", "wb"); file_out.write(json.dumps(self.config["blockpool"], sort_keys = True).encode()); file_out.close()
+            
     def print_attr(self):
         print(self.config)
         
@@ -132,7 +140,10 @@ class Node:
             if text[0] == 3:
                 if verify_bk(text[1], self.config["txpool"]):
                     print("Block verified successfully")
-                    self.config["blockpool"][json.dumps(text[1], sort_keys=True)] = text[1]
+                    if text[1]["blocknum"] <= len(list(os.listdir('BKS'))):
+                        self.config["blockpool"][hashlib.sha256(json.dumps(text[1], sort_keys=True).encode()).hexdigest()] = text[1]
+                        file_out = open('bkpool.json', "wb"); file_out.write(json.dumps(self.config["blockpool"]).encode()); file_out.close()
+                        continue
                     val = len(os.listdir('BKS'))+1
                     file_out = open(f'BKS/bk{val}.json', "wb"); file_out.write(json.dumps(text[1]).encode()); file_out.close()
                     output = add_UTXO(self.config["UTXO"], self.config["txpool"], text[1]["txs"])

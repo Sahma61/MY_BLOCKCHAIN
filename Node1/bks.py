@@ -5,6 +5,7 @@ class block:
     def __init__(self):
       
         self.block = {}
+        self.block["blocknum"] = 0
         self.block["time"] = 0
         self.block["size"] = 0
         self.block["version"] = None
@@ -89,12 +90,13 @@ class block:
         
     def mine_block(self):
         self.adjust_dif()
+        self.block["blocknum"] = len(list(os.listdir('BKS'))) + 1
         target = int(self.block["bits"][4:], 16)*2**(8*(int(self.block["bits"][2:4], 16) - 3))
         self.block["difficulty"] = int(self.block["difficulty_1"], 16) / target
+        self.block["time"] = int(time.clock_gettime(time.CLOCK_REALTIME))
         print(hex(target))
         for nonce in range(sys.maxsize):
             self.block["nonce"] = hex(nonce)
-            self.block["time"] = int(time.clock_gettime(time.CLOCK_REALTIME))
             val = hashlib.sha256(json.dumps(self.block, sort_keys=True).encode()).hexdigest()
             print(val)
             if target > int(val, 16):
