@@ -82,6 +82,12 @@ class Node:
         except FileNotFoundError:
             file_out = open("bkpool.json", "wb"); file_out.write(json.dumps(self.config["blockpool"], sort_keys = True).encode()); file_out.close()
             
+        try:    
+            with open('peerpool.json', 'r') as infile: peerpool = json.load(infile)
+            self.config["peerpool"] = copy.deepcopy(peerpool)
+        except FileNotFoundError:
+            file_out = open("peerpool.json", "wb"); file_out.write(json.dumps(self.config["peerpool"], sort_keys = True).encode()); file_out.close()   
+            
     def print_attr(self):
         print(self.config)
         
