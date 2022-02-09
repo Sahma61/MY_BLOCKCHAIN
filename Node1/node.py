@@ -4,8 +4,8 @@ import hashlib
 import copy, getpass
 import os
 import gen_keys
-from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
+from Cryptodome.Cipher import AES
+from Cryptodome.Random import get_random_bytes
 from txs import *
 from bks import *
 MAX_BYTES = 65535

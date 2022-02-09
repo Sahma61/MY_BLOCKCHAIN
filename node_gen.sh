@@ -9,3 +9,7 @@ cp modules/client.py "Node$1/client.py"
 cp modules/genesis.json "Node$1/genesis.json"
 cp modules/UTXO.json "Node$1/UTXO.json"
 mkdir "Node$1/BKS"
+cd "Node$1"
+#pyinstaller --onefile client.py
+#pyinstaller client.py
+

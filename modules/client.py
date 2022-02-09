@@ -79,23 +79,23 @@ def Mine(args):
         sock.sendto(data, (x[0], x[1]))
 
 node = Node()
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description='Use \'Receive\' to start the receiver thread, \'Send\' \'send address\' \'anoumt\' \'tx. fee\' to send coins, \'Mine\' to mine the blocks')
 subparsers = parser.add_subparsers()
 
-parser_foo = subparsers.add_parser('Send')
-parser_foo.add_argument('address', type=str, default="")
-parser_foo.add_argument('value', type=float)
-parser_foo.add_argument('fee', type=float)
-parser_foo.set_defaults(func=Send)
+parser_send = subparsers.add_parser('Send')
+parser_send.add_argument('address', type=str, default="")
+parser_send.add_argument('value', type=float)
+parser_send.add_argument('fee', type=float)
+parser_send.set_defaults(func=Send)
 
-parser_bar = subparsers.add_parser('Receive')
-parser_bar.set_defaults(func=Receive)
+parser_receive = subparsers.add_parser('Receive')
+parser_receive.set_defaults(func=Receive)
 
-parser_bar = subparsers.add_parser('View')
-parser_bar.set_defaults(func=view)
+parser_view = subparsers.add_parser('View')
+parser_view.set_defaults(func=view)
 
-parser_bar = subparsers.add_parser('Mine')
-parser_bar.set_defaults(func=Mine)
+parser_mine = subparsers.add_parser('Mine')
+parser_mine.set_defaults(func=Mine)
 
 args = parser.parse_args()
 args.func(args)

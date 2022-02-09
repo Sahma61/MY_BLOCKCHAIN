@@ -1,6 +1,6 @@
 import bitcoin
-from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
+from Cryptodome.Cipher import AES
+from Cryptodome.Random import get_random_bytes
 import json, getpass
 
 def get_keys():
