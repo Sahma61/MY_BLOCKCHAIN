@@ -1,10 +1,13 @@
+import time
 class transaction:
-    def __init__(self, vin = [], vout = []):
+    def __init__(self, tx_in = [], tx_out = [], is_coinbase = False):
         self.tx = {}
         self.tx['version'] = 1
         self.tx['locktime'] = 0
-        self.tx['vin'] = vin
-        self.tx['vout'] = vout
+        self.tx['vin'] = tx_in
+        self.tx['vout'] = tx_out
+        self.tx['is_coinbase'] = is_coinbase
+        self.tx['time'] = int(time.clock_gettime(time.CLOCK_REALTIME))
         
     def feed_input(): return 
     def get_output(): return
@@ -27,6 +30,8 @@ def verify_tx(tx, UTXO):
     valid = True
     valid &= tx['version'] == 1
     valid &= tx['locktime'] == 0
+    if tx['is_coinbase']:
+        return valid 
     for x in tx['vin']:
         if UTXO.get(x[0]) == None:
             valid = False

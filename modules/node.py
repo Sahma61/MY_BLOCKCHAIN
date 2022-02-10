@@ -4,8 +4,8 @@ import hashlib
 import copy, getpass
 import os
 import gen_keys
-from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
+from Cryptodome.Cipher import AES
+from Cryptodome.Random import get_random_bytes
 from txs import *
 from bks import *
 MAX_BYTES = 65535
@@ -101,6 +101,24 @@ class Node:
         hash = hashlib.sha256(json.dumps(tx, sort_keys=True).encode()).hexdigest()
         if txs.get(hash) == None:
             txs[hash] = tx
+
+    def add_coinbase_tx(self):
+        coinbase_tx = transaction(tx_in = [], tx_out = {self.config["bitcoin_address"]: 100}, is_coinbase = True)
+        self.add_txs(coinbase_tx.tx)
+        coinbase_tx_id = hashlib.sha256(json.dumps(coinbase_tx.tx, sort_keys=True).encode()).hexdigest()
+        data = json.dumps((2, coinbase_tx.tx)).encode()
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        for i in range(8000, 9000):
+            try: sock.bind(("127.0.0.1", i))
+            except socket.error as e: continue
+            address, port = sock.getsockname()
+            if port >= 8000 and port <= 9000: break
+
+        sock.settimeout(0.0)
+        with open('peerpool.json', 'r') as infile: peers = json.load(infile)
+        for x in peers:
+            sock.sendto(data, (x[0], x[1]))
+        return coinbase_tx, coinbase_tx_id
     
     def check_orphan_bks(self, bk):
         bks = self.config["blockpool"]

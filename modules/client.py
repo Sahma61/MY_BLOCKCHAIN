@@ -51,6 +51,10 @@ def Mine(args):
     if len(txpool) <= 10:
         listoftransactions = []
         listofids = []
+
+        coinbase_tx, coinbase_tx_id = node.add_coinbase_tx()
+        listoftransactions.append(coinbase_tx.tx)
+        listofids.append(coinbase_tx_id)
         
         for x in txpool.keys():
             listoftransactions.append(txpool[x])
