@@ -19,7 +19,7 @@ def add_UTXO(UTXO, txpool, listoftxids):
         tx = txpool[x]
         vin = tx["vin"]
         for y in vin:
-            if UTXO.get(y[0]) != None and UTXO.get(y[0]).get(y[1]) != None:
+            if UTXO.get(y[0]) is not None and UTXO.get(y[0]).get(y[1]) is not None:
                 UTXO.get(y[0]).pop(y[1])
                 
             if not list(UTXO[y[0]].keys()):
