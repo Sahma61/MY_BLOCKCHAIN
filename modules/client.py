@@ -102,4 +102,9 @@ parser_bar = subparsers.add_parser('Mine')
 parser_bar.set_defaults(func=Mine)
 
 args = parser.parse_args()
-args.func(args)
+try:
+    func = args.func
+except AttributeError:
+    parser.error("too few arguments")
+func(args)
+
